@@ -83,13 +83,43 @@ function App() {
     triggerSync();
   }, [refresh, triggerSync]);
 
-  const handleExport = useCallback(async () => {
+  const handleExportJson = useCallback(async () => {
     const allContacts = await getAllContacts();
     const blob = new Blob([JSON.stringify(allContacts, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `contacts-export-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const handleExportVcf = useCallback(async () => {
+    const allContacts = await getAllContacts();
+    let vcf = '';
+    for (const contact of allContacts) {
+      const fullName = [contact.firstName, contact.lastName].filter(Boolean).join(' ');
+      vcf += 'BEGIN:VCARD\n';
+      vcf += 'VERSION:3.0\n';
+      if (fullName) vcf += `FN:${fullName}\n`;
+      if (contact.firstName || contact.lastName) vcf += `N:${contact.lastName || ''};${contact.firstName || ''};;;\n`;
+      for (const phone of contact.phones) {
+        const type = phone.label.toUpperCase();
+        vcf += `TEL;TYPE=${type}:${phone.original}\n`;
+      }
+      for (const email of contact.emails) {
+        const type = email.label.toUpperCase();
+        vcf += `EMAIL;TYPE=${type}:${email.address}\n`;
+      }
+      if (contact.organization) vcf += `ORG:${contact.organization}\n`;
+      if (contact.notes) vcf += `NOTE:${contact.notes.replace(/\n/g, '\\n')}\n`;
+      vcf += 'END:VCARD\n';
+    }
+    const blob = new Blob([vcf], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contacts-${new Date().toISOString().split('T')[0]}.vcf`;
     a.click();
     URL.revokeObjectURL(url);
   }, []);
@@ -186,7 +216,8 @@ function App() {
         {activeTab === 'import' && (
           <ImportPage
             onImport={handleImport}
-            onExport={handleExport}
+            onExportJson={handleExportJson}
+            onExportVcf={handleExportVcf}
           />
         )}
       </main>

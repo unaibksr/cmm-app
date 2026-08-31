@@ -1073,6 +1073,12 @@ body {
   width: 100%;
 }
 
+.export-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .import-result {
   background: var(--success);
   border-radius: var(--radius);

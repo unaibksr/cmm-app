@@ -5,7 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface ImportPageProps {
   onImport: (contacts: Omit<Contact, 'id' | 'createdAt' | 'updatedAt' | 'deleted'>[]) => void;
-  onExport: () => void;
+  onExportJson: () => void;
+  onExportVcf: () => void;
 }
 
 interface DeviceContact {
@@ -14,7 +15,7 @@ interface DeviceContact {
   emails?: { value: string }[];
 }
 
-export function ImportPage({ onImport, onExport }: ImportPageProps) {
+export function ImportPage({ onImport, onExportJson, onExportVcf }: ImportPageProps) {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ imported: number; skipped: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +27,7 @@ export function ImportPage({ onImport, onExport }: ImportPageProps) {
     setError(null);
 
     if (!navigator.contacts) {
-      setError('Contacts API not supported. Use JSON import instead.');
+      setError('Contacts API not supported. Use file import instead.');
       setImporting(false);
       return;
     }
@@ -243,11 +244,16 @@ export function ImportPage({ onImport, onExport }: ImportPageProps) {
           </div>
           <h2 className="import-card__title">Export Contacts</h2>
           <p className="import-card__description">
-            Export all contacts as a JSON file for backup
+            Export contacts for backup or Google Contacts import
           </p>
-          <button className="btn btn--secondary" onClick={onExport}>
-            Export to JSON
-          </button>
+          <div className="export-buttons">
+            <button className="btn btn--secondary" onClick={onExportVcf}>
+              Google Contacts
+            </button>
+            <button className="btn btn--secondary" onClick={onExportJson}>
+              JSON Backup
+            </button>
+          </div>
         </div>
 
         {importResult && (
