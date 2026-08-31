@@ -9,11 +9,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt'],
       manifest: {
-        name: 'ContactMerger',
+        name: 'Contacts',
         short_name: 'Contacts',
         description: 'Merge duplicate contacts with cloud sync',
-        theme_color: '#6366f1',
-        background_color: '#ffffff',
+        theme_color: '#4f46e5',
+        background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -51,5 +51,18 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  build: {
+    target: 'esnext',
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          dexie: ['dexie'],
+          supabase: ['@supabase/supabase-js']
+        }
+      }
+    }
+  }
 })
