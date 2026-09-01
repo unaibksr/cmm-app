@@ -727,6 +727,12 @@ body {
   color: white;
 }
 
+.contact-detail__action--delete {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+}
+
 .multi-field {
   margin-bottom: 20px;
 }

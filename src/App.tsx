@@ -66,9 +66,9 @@ function App() {
   }, [removeContact, triggerSync]);
 
   const handleMergeContact = useCallback(async (merged: Contact) => {
-    await addContact(merged);
+    await updateContact(merged);
     triggerSync();
-  }, [addContact, triggerSync]);
+  }, [updateContact, triggerSync]);
 
   const handleImport = useCallback(async (imported: Omit<Contact, 'id' | 'createdAt' | 'updatedAt' | 'deleted'>[]) => {
     const contactsWithIds = imported.map(c => ({
@@ -187,6 +187,7 @@ function App() {
             contacts={contacts}
             onAdd={handleAddContact}
             onUpdate={handleUpdateContact}
+            onDelete={handleDeleteContact}
             onSearch={search}
             onFilterFavorites={async () => {
               setShowFavoritesOnly(true);
