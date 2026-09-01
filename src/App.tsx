@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Tab, Contact, DuplicateGroup } from './types';
+import { useState, useCallback, useMemo } from 'react';
+import { Tab, Contact } from './types';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { FAB } from './components/FAB';
@@ -18,7 +18,6 @@ import { getAllContacts, bulkSaveContacts } from './db/dexie';
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('contacts');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showContactForm, setShowContactForm] = useState(false);
 
@@ -44,11 +43,9 @@ function App() {
     triggerSync
   } = useSync();
 
-  useEffect(() => {
-    if (contacts.length > 0) {
-      const groups = findDuplicates(contacts);
-      setDuplicateGroups(groups);
-    }
+  const duplicateGroups = useMemo(() => {
+    if (contacts.length === 0) return [];
+    return findDuplicates(contacts);
   }, [contacts]);
 
   const handleAddContact = useCallback(async (data: Omit<Contact, 'id' | 'createdAt' | 'updatedAt' | 'deleted'>) => {

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Contact } from '../types';
 import { getDisplayPhone } from '../utils/phone';
 
@@ -12,7 +13,7 @@ interface ContactCardProps {
   selectionMode?: boolean;
 }
 
-export function ContactCard({
+function ContactCardComponent({
   contact,
   onClick,
   onLongPress,
@@ -77,3 +78,5 @@ export function ContactCard({
     </div>
   );
 }
+
+export const ContactCard = memo(ContactCardComponent);

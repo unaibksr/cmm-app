@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { DuplicateGroup } from '../types';
 import { getDisplayPhone } from '../utils/phone';
 
@@ -6,7 +7,7 @@ interface DuplicateCardProps {
   onMerge: () => void;
 }
 
-export function DuplicateCard({ group, onMerge }: DuplicateCardProps) {
+function DuplicateCardComponent({ group, onMerge }: DuplicateCardProps) {
   return (
     <div className="duplicate-card">
       <div className="duplicate-card__header">
@@ -31,3 +32,5 @@ export function DuplicateCard({ group, onMerge }: DuplicateCardProps) {
     </div>
   );
 }
+
+export const DuplicateCard = memo(DuplicateCardComponent);

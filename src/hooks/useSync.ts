@@ -53,10 +53,17 @@ export function useSync() {
     statusRef.current = status;
   }, [status]);
 
+  const statusResetTimeout = useRef<number | null>(null);
+
   const performSync = useCallback(async (force = false) => {
     try {
       setStatus('syncing');
       setError(null);
+
+      if (statusResetTimeout.current) {
+        clearTimeout(statusResetTimeout.current);
+        statusResetTimeout.current = null;
+      }
 
       const local = await getAllContacts();
       let cloud: Contact[] = [];
@@ -94,7 +101,7 @@ export function useSync() {
       setStatus('done');
       pendingSync.current = false;
 
-      setTimeout(() => {
+      statusResetTimeout.current = window.setTimeout(() => {
         setStatus(prev => prev === 'done' ? 'idle' : prev);
       }, 3000);
     } catch (e) {
@@ -134,6 +141,9 @@ export function useSync() {
     return () => {
       if (syncTimeout.current) {
         clearTimeout(syncTimeout.current);
+      }
+      if (statusResetTimeout.current) {
+        clearTimeout(statusResetTimeout.current);
       }
     };
   }, []);

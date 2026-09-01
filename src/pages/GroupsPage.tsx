@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Contact } from '../types';
 import { GroupCard } from '../components/GroupCard';
 
@@ -8,10 +9,12 @@ interface GroupsPageProps {
 }
 
 export function GroupsPage({ tags, contacts, onSelectTag }: GroupsPageProps) {
-  const tagCounts = tags.reduce((acc, tag) => {
-    acc[tag] = contacts.filter(c => c.tags.includes(tag) && !c.deleted).length;
-    return acc;
-  }, {} as Record<string, number>);
+  const tagCounts = useMemo(() => {
+    return tags.reduce((acc, tag) => {
+      acc[tag] = contacts.filter(c => c.tags.includes(tag) && !c.deleted).length;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [tags, contacts]);
 
   return (
     <div className="page">

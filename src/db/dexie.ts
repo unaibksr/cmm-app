@@ -67,7 +67,11 @@ export async function searchContacts(query: string): Promise<Contact[]> {
 export async function getAllTags(): Promise<string[]> {
   const contacts = await db.contacts.filter(c => !c.deleted).toArray();
   const tagsSet = new Set<string>();
-  contacts.forEach(c => c.tags.forEach(t => tagsSet.add(t)));
+  for (const c of contacts) {
+    for (const t of c.tags) {
+      tagsSet.add(t);
+    }
+  }
   return Array.from(tagsSet).sort();
 }
 

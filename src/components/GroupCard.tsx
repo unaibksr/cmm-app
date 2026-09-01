@@ -1,10 +1,12 @@
+import { memo } from 'react';
+
 interface GroupCardProps {
   tag: string;
   contactCount: number;
   onClick: () => void;
 }
 
-export function GroupCard({ tag, contactCount, onClick }: GroupCardProps) {
+function GroupCardComponent({ tag, contactCount, onClick }: GroupCardProps) {
   return (
     <div className="group-card" onClick={onClick} role="button" tabIndex={0}>
       <div className="group-card__icon">
@@ -22,3 +24,5 @@ export function GroupCard({ tag, contactCount, onClick }: GroupCardProps) {
     </div>
   );
 }
+
+export const GroupCard = memo(GroupCardComponent);

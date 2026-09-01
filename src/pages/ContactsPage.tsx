@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
-import { Contact } from '../types';
+import { useState, useRef, useCallback } from 'react';
+import { Contact, Contact as ContactType } from '../types';
 import { ContactCard } from '../components/ContactCard';
 import { ContactForm } from '../components/ContactForm';
-import { Contact as ContactType } from '../types';
 import { getDisplayPhone } from '../utils/phone';
 
 interface ContactsPageProps {
@@ -36,15 +35,15 @@ export function ContactsPage({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!selectedContact) return;
     if (confirm('Delete this contact?')) {
       onDelete(selectedContact.id);
       setSelectedContact(undefined);
     }
-  };
+  }, [selectedContact, onDelete]);
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
     const count = selectedIds.size;
     if (confirm(`Delete ${count} contact${count > 1 ? 's' : ''}?`)) {
@@ -52,9 +51,9 @@ export function ContactsPage({
       setSelectedIds(new Set());
       setSelectionMode(false);
     }
-  };
+  }, [selectedIds, onDeleteMultiple]);
 
-  const handleSave = (data: Omit<ContactType, 'id' | 'createdAt' | 'updatedAt' | 'deleted'>) => {
+  const handleSave = useCallback((data: Omit<ContactType, 'id' | 'createdAt' | 'updatedAt' | 'deleted'>) => {
     if (editingContact) {
       onUpdate({ ...editingContact, ...data, updatedAt: Date.now() });
     } else {
@@ -62,14 +61,14 @@ export function ContactsPage({
     }
     setEditingContact(undefined);
     setSelectedContact(undefined);
-  };
+  }, [editingContact, onAdd, onUpdate]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     setSelectedContact(undefined);
     setEditingContact(undefined);
-  };
+  }, []);
 
-  const handleCopy = () => {
+  const handleCopy = useCallback(() => {
     if (!selectedContact) return;
     const fullName = [selectedContact.firstName, selectedContact.lastName].filter(Boolean).join(' ');
     const phone = selectedContact.phones[0]?.number || '';
@@ -77,61 +76,70 @@ export function ContactsPage({
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
+  }, [selectedContact]);
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
     onSearch(query);
-  };
+  }, [onSearch]);
 
-  const startLongPress = (contact: Contact) => {
+  const startLongPress = useCallback((contactId: string) => {
     longPressTimer.current = setTimeout(() => {
       setSelectionMode(true);
-      setSelectedIds(new Set([contact.id]));
+      setSelectedIds(new Set([contactId]));
     }, 500);
-  };
+  }, []);
 
-  const cancelLongPress = () => {
+  const cancelLongPress = useCallback(() => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
-  };
+  }, []);
 
-  const handleCardClick = (contact: Contact) => {
+  const handleCardClick = useCallback((contact: Contact) => {
     if (selectionMode) {
-      const newSelected = new Set(selectedIds);
-      if (newSelected.has(contact.id)) {
-        newSelected.delete(contact.id);
+      setSelectedIds(prev => {
+        const newSelected = new Set(prev);
+        if (newSelected.has(contact.id)) {
+          newSelected.delete(contact.id);
+          if (newSelected.size === 0) {
+            setSelectionMode(false);
+          }
+        } else {
+          newSelected.add(contact.id);
+        }
+        return newSelected;
+      });
+    } else {
+      setSelectedContact(contact);
+    }
+  }, [selectionMode]);
+
+  const toggleSelection = useCallback((contactId: string) => {
+    setSelectedIds(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(contactId)) {
+        newSelected.delete(contactId);
         if (newSelected.size === 0) {
           setSelectionMode(false);
         }
       } else {
-        newSelected.add(contact.id);
+        newSelected.add(contactId);
       }
-      setSelectedIds(newSelected);
-    } else {
-      setSelectedContact(contact);
-    }
-  };
+      return newSelected;
+    });
+  }, []);
 
-  const toggleSelection = (contactId: string) => {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(contactId)) {
-      newSelected.delete(contactId);
-      if (newSelected.size === 0) {
-        setSelectionMode(false);
-      }
-    } else {
-      newSelected.add(contactId);
-    }
-    setSelectedIds(newSelected);
-  };
-
-  const cancelSelection = () => {
+  const cancelSelection = useCallback(() => {
     setSelectionMode(false);
     setSelectedIds(new Set());
-  };
+  }, []);
+
+  const handleFavoriteToggle = useCallback((contact: Contact, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onUpdate({ ...contact, favorite: !contact.favorite });
+  }, [onUpdate]);
 
   if (editingContact && selectedContact) {
     return (
@@ -245,16 +253,13 @@ export function ContactsPage({
             <ContactCard
               key={contact.id}
               contact={contact}
-              selected={selectionMode && selectedIds.has(contact.id)}
+              selected={selectedIds.has(contact.id)}
               selectionMode={selectionMode}
               onClick={() => handleCardClick(contact)}
-              onLongPress={() => startLongPress(contact)}
+              onLongPress={() => startLongPress(contact.id)}
               onCancelLongPress={cancelLongPress}
               onToggleSelect={() => toggleSelection(contact.id)}
-              onFavoriteToggle={(e) => {
-                e.stopPropagation();
-                onUpdate({ ...contact, favorite: !contact.favorite });
-              }}
+              onFavoriteToggle={(e) => handleFavoriteToggle(contact, e)}
             />
           ))
         )}
