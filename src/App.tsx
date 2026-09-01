@@ -3,6 +3,7 @@ import { Tab, Contact, DuplicateGroup } from './types';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
 import { FAB } from './components/FAB';
+import { ContactForm } from './components/ContactForm';
 import { ErrorBanner } from './components/ErrorBanner';
 import { ContactsPage } from './pages/ContactsPage';
 import { DuplicatesPage } from './pages/DuplicatesPage';
@@ -225,6 +226,25 @@ function App() {
 
       {activeTab === 'contacts' && !showContactForm && (
         <FAB onClick={() => setShowContactForm(true)} />
+      )}
+
+      {activeTab === 'contacts' && showContactForm && (
+        <div className="page page--form">
+          <div className="contact-detail__header">
+            <button className="contact-detail__back" onClick={() => setShowContactForm(false)}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <ContactForm
+            onSave={(data) => {
+              handleAddContact(data);
+              setShowContactForm(false);
+            }}
+            onCancel={() => setShowContactForm(false)}
+          />
+        </div>
       )}
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
