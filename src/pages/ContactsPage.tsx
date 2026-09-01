@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Contact } from '../types';
 import { ContactCard } from '../components/ContactCard';
 import { ContactForm } from '../components/ContactForm';
@@ -10,6 +10,7 @@ interface ContactsPageProps {
   onAdd: (contact: Omit<ContactType, 'id' | 'createdAt' | 'updatedAt' | 'deleted'>) => void;
   onUpdate: (contact: ContactType) => void;
   onDelete: (id: string) => void;
+  onDeleteMultiple: (ids: string[]) => void;
   onSearch: (query: string) => void;
   onFilterFavorites: () => void;
   onClearFilter: () => void;
@@ -21,6 +22,7 @@ export function ContactsPage({
   onAdd,
   onUpdate,
   onDelete,
+  onDeleteMultiple,
   onSearch,
   onFilterFavorites,
   onClearFilter,
@@ -30,12 +32,25 @@ export function ContactsPage({
   const [selectedContact, setSelectedContact] = useState<Contact | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [copied, setCopied] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleDelete = () => {
     if (!selectedContact) return;
     if (confirm('Delete this contact?')) {
       onDelete(selectedContact.id);
       setSelectedContact(undefined);
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedIds.size === 0) return;
+    const count = selectedIds.size;
+    if (confirm(`Delete ${count} contact${count > 1 ? 's' : ''}?`)) {
+      onDeleteMultiple(Array.from(selectedIds));
+      setSelectedIds(new Set());
+      setSelectionMode(false);
     }
   };
 
@@ -67,6 +82,55 @@ export function ContactsPage({
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     onSearch(query);
+  };
+
+  const startLongPress = (contact: Contact) => {
+    longPressTimer.current = setTimeout(() => {
+      setSelectionMode(true);
+      setSelectedIds(new Set([contact.id]));
+    }, 500);
+  };
+
+  const cancelLongPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleCardClick = (contact: Contact) => {
+    if (selectionMode) {
+      const newSelected = new Set(selectedIds);
+      if (newSelected.has(contact.id)) {
+        newSelected.delete(contact.id);
+        if (newSelected.size === 0) {
+          setSelectionMode(false);
+        }
+      } else {
+        newSelected.add(contact.id);
+      }
+      setSelectedIds(newSelected);
+    } else {
+      setSelectedContact(contact);
+    }
+  };
+
+  const toggleSelection = (contactId: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(contactId)) {
+      newSelected.delete(contactId);
+      if (newSelected.size === 0) {
+        setSelectionMode(false);
+      }
+    } else {
+      newSelected.add(contactId);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const cancelSelection = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
   };
 
   if (editingContact && selectedContact) {
@@ -181,7 +245,12 @@ export function ContactsPage({
             <ContactCard
               key={contact.id}
               contact={contact}
-              onClick={() => setSelectedContact(contact)}
+              selected={selectionMode && selectedIds.has(contact.id)}
+              selectionMode={selectionMode}
+              onClick={() => handleCardClick(contact)}
+              onLongPress={() => startLongPress(contact)}
+              onCancelLongPress={cancelLongPress}
+              onToggleSelect={() => toggleSelection(contact.id)}
               onFavoriteToggle={(e) => {
                 e.stopPropagation();
                 onUpdate({ ...contact, favorite: !contact.favorite });
@@ -190,6 +259,23 @@ export function ContactsPage({
           ))
         )}
       </div>
+
+      {selectionMode && (
+        <div className="selection-bar">
+          <button className="selection-bar__cancel" onClick={cancelSelection}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+          <span className="selection-bar__count">{selectedIds.size} selected</span>
+          <button className="selection-bar__delete" onClick={handleDeleteSelected}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Delete
+          </button>
+        </div>
+      )}
     </div>
   );
 }

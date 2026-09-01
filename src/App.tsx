@@ -189,6 +189,12 @@ function App() {
             onAdd={handleAddContact}
             onUpdate={handleUpdateContact}
             onDelete={handleDeleteContact}
+            onDeleteMultiple={async (ids) => {
+              for (const id of ids) {
+                await removeContact(id);
+              }
+              triggerSync();
+            }}
             onSearch={search}
             onFilterFavorites={async () => {
               setShowFavoritesOnly(true);

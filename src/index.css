@@ -390,6 +390,79 @@ body {
   color: #f59e0b;
 }
 
+.contact-card--selected {
+  background: rgba(79, 70, 229, 0.1);
+  border-color: var(--primary);
+}
+
+.contact-card__checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.contact-card__checkbox--checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.selection-bar {
+  position: fixed;
+  bottom: 76px;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 100;
+}
+
+.selection-bar__cancel {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.selection-bar__count {
+  flex: 1;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.selection-bar__delete {
+  padding: 10px 16px;
+  background: #dc2626;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.selection-bar__delete:active {
+  transform: scale(0.98);
+}
+
 .contacts-page__search {
   display: flex;
   gap: 10px;
